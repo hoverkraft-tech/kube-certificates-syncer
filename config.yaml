@@ -3,4 +3,7 @@ secretFilter:
   certificate-syncer-dryRun: "false"
 
 remap:
-  old_field_name: new_field_name
+  - name: tls.crt
+    value: '{{secretName}}.crt'
+  - name: tls.key
+    value: '{{secretName}}.crt.key'

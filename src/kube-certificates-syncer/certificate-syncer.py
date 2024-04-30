@@ -1,13 +1,15 @@
-import os
-import yaml
 import logging
-import sys
-import base64
+import os
 import re
+import sys
+import yaml
+from base64 import b64decode
+from jinja2 import Template
 from kubernetes import client, config, watch
+from remap import remap_key
 
 # setup logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('k8s-cert-sync')
 logger.addHandler(logging.StreamHandler(sys.stderr))
 logger.setLevel(logging.INFO)
 logger.info('starting kube-certificates-syncer')
@@ -66,15 +68,21 @@ for event in w.stream(v1.list_namespaced_secret, namespace='default'):
 
   # Download all the secrets in the sync directory
   for key, value in secret.data.items():
+
     # Remap the fields of the secrets if specified in the configuration
-    if 'remap' in config_data and key in config_data['remap']:
+    if 'remap' in config_data:
       logger.info('remapping fields for %s', secret.metadata.name)
-      key = config_data['remap'][key]
+      for item in config_data['remap']:
+        _kname = item['name']
+        _kvalue = item['value']
+        key = remap_key(key, _kname, _kvalue, secret)
+        logger.info('New object after remaping: (%s: %s)', key, value[1:10])
 
     # Write the secret data to a file in the sync directory
-    filename = re.sub(r"^tls\.", secret.metadata.name + '.', key)
-    with open(os.path.join(sync_dir, filename), 'w') as f:
+    filename = os.path.join(sync_dir, key)
+    with open(filename, 'w') as f:
+      value = b64decode(value).decode('utf-8')
       f.write(value)
-      logger.info('%s secret written to %s/%s', secret.metadata.name, sync_dir, filename)
+      logger.info('secret=%s key=%s written to %s', secret.metadata.name, key, filename)
 
 logger.info('Finished')
