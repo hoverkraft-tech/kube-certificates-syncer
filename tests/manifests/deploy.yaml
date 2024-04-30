@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: certs-syncer
+spec:
+  selector:
+    matchLabels:
+      app: certs-syncer
+  template:
+    metadata:
+      labels:
+        app: certs-syncer
+    spec:
+      containers:
+      - name: certs-syncer
+        image: ttl.sh/certs-syncer:1h
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: certs
+          mountPath: /certs
+      volumes:
+      - name: certs
+        persistentVolumeClaim:
+          claimName: certs

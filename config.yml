@@ -1,0 +1,6 @@
+secretFilter:
+  certificate-syncer-enabled: "true"
+  certificate-syncer-dryRun: "false"
+
+remap:
+  old_field_name: new_field_name
