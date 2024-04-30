@@ -55,40 +55,44 @@ logger.info('Annotations filter: %s', annotation_filter)
 # Watch for changes in Secrets objects in the current namespace
 logger.info('Watching secrets events')
 w = watch.Watch()
-for event in w.stream(v1.list_namespaced_secret, namespace):
-  secret = event['object']
-  logger.info('Considering secret %s', secret.metadata.name)
 
-  # loop over all the secrets in the namespace
-  for key, value in secret.data.items():
+try:
+  for event in w.stream(v1.list_namespaced_secret, namespace):
+    secret = event['object']
+    logger.info('Considering secret %s', secret.metadata.name)
 
-    matched = False
-    for f_key, f_val in annotation_filter.items():
-      if secret.metadata.annotations.get(f_key) != f_val:
-          logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
-          break
-      else:
-        logger.info('annotation match: secret=%s, annotation=%s, value=%s', secret.metadata.name, f_key, f_val)
-        matched = True
-        continue
-    # if only one annotation does not match we should pass to the next event
-    if matched == False:
-      break
+    # loop over all the secrets in the namespace
+    for key, value in secret.data.items():
 
-    # Remap the fields of the secrets if specified in the configuration
-    if 'remap' in config_data:
-      logger.info('remapping fields for %s', secret.metadata.name)
-      for item in config_data['remap']:
-        _kname = item['name']
-        _kvalue = item['value']
-        key = remap_key(key, _kname, _kvalue, secret)
-        logger.info('New object after remaping: (%s: %s)', key, value[1:10])
+      matched = False
+      for f_key, f_val in annotation_filter.items():
+        if secret.metadata.annotations.get(f_key) != f_val:
+            logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
+            break
+        else:
+          logger.info('annotation match: secret=%s, annotation=%s, value=%s', secret.metadata.name, f_key, f_val)
+          matched = True
+          continue
+      # if only one annotation does not match we should pass to the next event
+      if matched == False:
+        break
 
-    # Write the secret data to a file in the sync directory
-    filename = os.path.join(sync_dir, key)
-    with open(filename, 'w') as f:
-      value = b64decode(value).decode('utf-8')
-      f.write(value)
-      logger.info('secret=%s key=%s written to %s', secret.metadata.name, key, filename)
+      # Remap the fields of the secrets if specified in the configuration
+      if 'remap' in config_data:
+        logger.info('remapping fields for %s', secret.metadata.name)
+        for item in config_data['remap']:
+          _kname = item['name']
+          _kvalue = item['value']
+          key = remap_key(key, _kname, _kvalue, secret)
+          logger.info('New object after remaping: (%s: %s)', key, value[1:10])
 
-logger.info('Finished')
+      # Write the secret data to a file in the sync directory
+      filename = os.path.join(sync_dir, key)
+      with open(filename, 'w') as f:
+        value = b64decode(value).decode('utf-8')
+        f.write(value)
+        logger.info('secret=%s key=%s written to %s', secret.metadata.name, key, filename)
+
+except KeyboardInterrupt:
+  logger.info('Finished')
+  sys.exit(0)

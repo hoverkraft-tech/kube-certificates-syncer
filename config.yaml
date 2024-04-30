@@ -1,7 +1,7 @@
 filter:
   annotations:
     certificate-syncer-enabled: "true"
-    # certificate-syncer-dryRun: "false"
+    certificate-syncer-dryRun: "false"
 
 remap:
   - name: tls.crt
