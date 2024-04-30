@@ -49,25 +49,31 @@ if sync_dir == None:
 logger.info('Will sync to target dir %s', sync_dir)
 
 # Get the annotation filter from the configuration
-annotation_filter = config_data.get('secretFilter')
+annotation_filter = config_data.get('filter').get('annotations')
 logger.info('Annotations filter: %s', annotation_filter)
 
 # Watch for changes in Secrets objects in the current namespace
 logger.info('Watching secrets events')
 w = watch.Watch()
-for event in w.stream(v1.list_namespaced_secret, namespace='default'):
+for event in w.stream(v1.list_namespaced_secret, namespace):
   secret = event['object']
   logger.info('Considering secret %s', secret.metadata.name)
 
-  # Check if the secret has the required annotations
-  for key, value in annotation_filter.items():
-    if secret.metadata.annotations.get(key) != value:
-      logger.info('Annotations filter does not match for secret %s, skipping it.', secret.metadata.name)
-      continue
-  logger.info('Annotations filter does match for secret %s, syncing it.', secret.metadata.name)
-
-  # Download all the secrets in the sync directory
+  # loop over all the secrets in the namespace
   for key, value in secret.data.items():
+
+    matched = False
+    for f_key, f_val in annotation_filter.items():
+      if secret.metadata.annotations.get(f_key) != f_val:
+          logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
+          break
+      else:
+        logger.info('annotation match: secret=%s, annotation=%s, value=%s', secret.metadata.name, f_key, f_val)
+        matched = True
+        continue
+    # if only one annotation does not match we should pass to the next event
+    if matched == False:
+      break
 
     # Remap the fields of the secrets if specified in the configuration
     if 'remap' in config_data:
