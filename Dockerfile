@@ -5,5 +5,5 @@ WORKDIR /app
 COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY src/kube-certificates-syncer/ /app/
 ENTRYPOINT ["python", "certificate-syncer.py"]
