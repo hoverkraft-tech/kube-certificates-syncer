@@ -1,6 +1,9 @@
 import os
 import yaml
 import logging
+import sys
+import base64
+import re
 from kubernetes import client, config, watch
 
 # setup logger
@@ -9,10 +12,21 @@ logger.addHandler(logging.StreamHandler(sys.stderr))
 logger.setLevel(logging.INFO)
 logger.info('starting kube-certificates-syncer')
 
-# Load the kube config from the default location
+# Load the kube config
 logger.info('Loading kubernetes client configuration from environment')
-config.load_kube_config()
+try:
+  config.load_kube_config()
+except Exception as e:
+  config.load_incluster_config()
+
+# get the current namespace
+try:
+  namespace = config.list_kube_config_contexts()[1]['context']['namespace']
+except:
+  namespace = "default"
+
 logger.info('Kubernetes config loaded')
+logger.info('Kubernetes current namespace: %s', namespace)
 
 # Create a client for the Kubernetes API
 v1 = client.CoreV1Api()
@@ -28,6 +42,8 @@ logger.info('Config file loaded')
 
 # Get the sync directory from the environment variable
 sync_dir = os.getenv('SYNCDIR')
+if sync_dir == None:
+  sync_dir = "/certs"
 logger.info('Will sync to target dir %s', sync_dir)
 
 # Get the annotation filter from the configuration
@@ -37,7 +53,7 @@ logger.info('Annotations filter: %s', annotation_filter)
 # Watch for changes in Secrets objects in the current namespace
 logger.info('Watching secrets events')
 w = watch.Watch()
-for event in w.stream(v1.list_namespaced_secret):
+for event in w.stream(v1.list_namespaced_secret, namespace='default'):
   secret = event['object']
   logger.info('Considering secret %s', secret.metadata.name)
 
@@ -56,8 +72,9 @@ for event in w.stream(v1.list_namespaced_secret):
       key = config_data['remap'][key]
 
     # Write the secret data to a file in the sync directory
-    with open(os.path.join(sync_dir, key), 'w') as f:
+    filename = re.sub(r"^tls\.", secret.metadata.name + '.', key)
+    with open(os.path.join(sync_dir, filename), 'w') as f:
       f.write(value)
-      logger.info('%s secret written', secret.metadata.name)
+      logger.info('%s secret written to %s/%s', secret.metadata.name, sync_dir, filename)
 
 logger.info('Finished')
