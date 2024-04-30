@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: certs-syncer
+data:
+  config.yaml: |
+    filter:
+      annotations:
+        certificate-syncer-enabled: "true"
+        certificate-syncer-dryRun: "false"
+    remap:
+      - name: tls.crt
+        value: '{{secretName}}.crt'
+      - name: tls.key
+        value: '{{secretName}}.crt.key'
+
