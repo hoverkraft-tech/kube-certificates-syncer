@@ -76,7 +76,7 @@ try:
         if secret.metadata.annotations:
           f_annotations = secret.metadata.annotations.get(f_key)
         if f_annotations != f_val:
-            logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
+            logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, f_annotations, f_val)
             break
         else:
           logger.info('annotation match: secret=%s, annotation=%s, value=%s', secret.metadata.name, f_key, f_val)
