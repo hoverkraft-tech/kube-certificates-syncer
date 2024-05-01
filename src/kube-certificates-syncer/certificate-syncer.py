@@ -72,7 +72,8 @@ try:
 
       matched = False
       for f_key, f_val in annotation_filter.items():
-        if secret.metadata.annotations.get(f_key) != f_val:
+        f_annotations = secret.metadata.annotations.get(f_key) or None
+        if f_annotations != f_val:
             logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
             break
         else:
