@@ -72,7 +72,9 @@ try:
 
       matched = False
       for f_key, f_val in annotation_filter.items():
-        f_annotations = secret.metadata.annotations.get(f_key) or None
+        f_annotations = None
+        if secret.metadata.annotations:
+          f_annotations = secret.metadata.annotations.get(f_key)
         if f_annotations != f_val:
             logger.info('annotation mismatch: secret=%s, annotation=%s, value=%s, expected=%s', secret.metadata.name, f_key, secret.metadata.annotations.get(f_key), f_val)
             break
@@ -91,7 +93,7 @@ try:
           _kname = item['name']
           _kvalue = item['value']
           key = remap_key(key, _kname, _kvalue, secret)
-          logger.info('New object after remaping: (%s: %s)', key, value[1:10])
+          logger.info('new object after remaping: (%s: %s)', key, value[1:10])
 
       # Write the secret data to a file in the sync directory
       filename = os.path.join(sync_dir, key)
