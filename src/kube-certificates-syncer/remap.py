@@ -1,10 +1,12 @@
+import sys
+import os
 import re
 import string
 import logging
 
-def remap_key(key: string, remapKey: string, remapValue: string, secret: object):
-  logger = logging.getLogger('k8s-cert-sync')
-  logger.info('remapping key %s with %s: %s', key, remapKey, remapValue)
+def key(key: string, remapKey: string, remapValue: string, secret: object):
+  logger = logging.getLogger(__name__)
+  logger.debug('remapping keys: secret=%s key=%s remapKey=%s remapValue=%s', secret.metadata.name, key, remapKey, remapValue)
 
   if key != remapKey:
     return key

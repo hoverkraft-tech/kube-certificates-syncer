@@ -6,4 +6,5 @@ COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
 COPY src/kube-certificates-syncer/ /app/
-ENTRYPOINT ["python", "certificate-syncer.py"]
+COPY config.yaml /app/
+ENTRYPOINT ["python", "main.py"]
