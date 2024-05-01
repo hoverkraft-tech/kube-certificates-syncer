@@ -14,6 +14,11 @@ spec:
       containers:
       - name: certs-syncer
         image: docker.io/webofmars/certs-syncer:develop
+        env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
         resources:
           limits:
             memory: "128Mi"

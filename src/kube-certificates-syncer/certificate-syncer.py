@@ -14,25 +14,6 @@ logger.addHandler(logging.StreamHandler(sys.stderr))
 logger.setLevel(logging.INFO)
 logger.info('starting kube-certificates-syncer')
 
-# Load the kube config
-logger.info('Loading kubernetes client configuration from environment')
-try:
-  config.load_kube_config()
-except Exception as e:
-  config.load_incluster_config()
-
-# get the current namespace
-try:
-  namespace = config.list_kube_config_contexts()[1]['context']['namespace']
-except:
-  namespace = "default"
-
-logger.info('Kubernetes config loaded')
-logger.info('Kubernetes current namespace: %s', namespace)
-
-# Create a client for the Kubernetes API
-v1 = client.CoreV1Api()
-
 # Load the configuration from the config.yaml file
 logger.info('Loading config file')
 with open("config.yaml", 'r') as stream:
@@ -42,20 +23,45 @@ with open("config.yaml", 'r') as stream:
     print(exc)
 logger.info('Config file loaded')
 
+# Get the annotation filter from the configuration file
+annotation_filter = config_data.get('filter').get('annotations')
+logger.info('Annotations filter: %s', annotation_filter)
+
+# Get the remap config from the configuration file
+remap_config = config_data.get('remap')
+logger.info('Remap config: %s', remap_config)
+
 # Get the sync directory from the environment variable
 sync_dir = os.getenv('SYNCDIR')
 if sync_dir == None:
   sync_dir = "/certs"
 logger.info('Will sync to target dir %s', sync_dir)
 
-# Get the annotation filter from the configuration
-annotation_filter = config_data.get('filter').get('annotations')
-logger.info('Annotations filter: %s', annotation_filter)
+# Get the current namespace from kubeconfig or from env
+try:
+  namespace = config.list_kube_config_contexts()[1]['context']['namespace']
+except:
+  namespace = os.getenv('NAMESPACE')
+finally:
+  namespace = 'default'
+logger.info('Kubernetes current namespace: %s', namespace)
+
+# Load the kube config
+logger.info('Loading kubernetes client configuration from environment')
+try:
+  config.load_kube_config()
+except Exception as e:
+  config.load_incluster_config()
+logger.info('Kubernetes config loaded')
+
+# Create a client for the Kubernetes API
+v1 = client.CoreV1Api()
 
 # Watch for changes in Secrets objects in the current namespace
 logger.info('Watching secrets events')
 w = watch.Watch()
 
+# main events loop
 try:
   for event in w.stream(v1.list_namespaced_secret, namespace):
     secret = event['object']
@@ -78,9 +84,9 @@ try:
         break
 
       # Remap the fields of the secrets if specified in the configuration
-      if 'remap' in config_data:
+      if remap_config:
         logger.info('remapping fields for %s', secret.metadata.name)
-        for item in config_data['remap']:
+        for item in remap_config:
           _kname = item['name']
           _kvalue = item['value']
           key = remap_key(key, _kname, _kvalue, secret)
