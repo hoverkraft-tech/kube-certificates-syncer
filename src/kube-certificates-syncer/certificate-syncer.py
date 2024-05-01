@@ -38,12 +38,12 @@ if sync_dir == None:
 logger.info('Will sync to target dir %s', sync_dir)
 
 # Get the current namespace from kubeconfig or from env
-try:
-  namespace = config.list_kube_config_contexts()[1]['context']['namespace']
-except:
-  namespace = os.getenv('NAMESPACE')
-finally:
-  namespace = 'default'
+namespace = os.getenv('NAMESPACE')
+if not namespace:
+  try:
+    namespace = config.list_kube_config_contexts()[1]['context']['namespace']
+  except:
+    namespace = 'default'
 logger.info('Kubernetes current namespace: %s', namespace)
 
 # Load the kube config
