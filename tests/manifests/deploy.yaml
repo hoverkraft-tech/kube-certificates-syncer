@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: certs-syncer
-        image: docker.io/webofmars/certs-syncer:develop
+        image: docker.io/webofmars/certs-syncer:0.2.1
         env:
           - name: NAMESPACE
             valueFrom:

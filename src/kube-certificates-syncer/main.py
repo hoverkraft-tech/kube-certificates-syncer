@@ -41,6 +41,14 @@ def main():
     sync_dir = "/certs"
   logger.info('syncdir: %s', sync_dir)
 
+  # Load the kube config
+  logger.info('loading kubernetes client configuration from environment')
+  try:
+    config.load_kube_config()
+  except config.config_exception.ConfigException:
+    config.load_incluster_config()
+  logger.info('kubernetes client config loaded')
+
   # Get the current namespace from kubeconfig or from env
   namespace = os.getenv('NAMESPACE')
   if not namespace:
@@ -49,14 +57,6 @@ def main():
     except:
       namespace = 'default'
   logger.info('kubernetes current namespace: %s', namespace)
-
-  # Load the kube config
-  logger.info('loading kubernetes client configuration from environment')
-  try:
-    config.load_kube_config()
-  except Exception as e:
-    config.load_incluster_config()
-  logger.info('kubernetes client config loaded')
 
   # Create a client for the Kubernetes API
   v1 = client.CoreV1Api()

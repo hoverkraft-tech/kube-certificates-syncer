@@ -2,3 +2,4 @@
 /certs
 .envrc
 __pycache__
+/.vscode
