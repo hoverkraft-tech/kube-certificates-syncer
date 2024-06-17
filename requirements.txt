@@ -11,11 +11,11 @@ pyasn1==0.6.0
 pyasn1_modules==0.4.0
 python-dateutil==2.9.0.post0
 PyYAML==6.0.1
-requests==2.31.0
+requests==2.32.2
 requests-oauthlib==2.0.0
 rsa==4.9
 setuptools==69.5.1
 six==1.16.0
-urllib3==2.2.1
+urllib3==2.2.2
 websocket-client==1.8.0
 wheel==0.43.0
