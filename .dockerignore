@@ -2,3 +2,13 @@
 /tests
 /.envrc
 __pycache__
+/.git
+/.cache
+/.mypy_cache
+/.pytest_cache
+/.ruff_cache
+/.coverage
+/cobertura.xml
+/junit.xml
+/ruff.sarif
+/dist

@@ -3,3 +3,14 @@
 .envrc
 __pycache__
 /.vscode
+
+/.cache/
+/.mypy_cache/
+/.pytest_cache/
+/.ruff_cache/
+/.coverage
+/cobertura.xml
+/junit.xml
+/ruff.sarif
+/dist/
+*.egg-info/
