@@ -4,6 +4,10 @@ kind: RoleBinding
 metadata:
   name: certs-syncer
   namespace: certs-syncer
+  annotations:
+    checkov.io/skip1:
+      CKV2_K8S_5=Reading Secrets in this namespace is the syncer purpose.
+      The Role grants only list and watch.
 subjects:
   - kind: ServiceAccount
     name: certs-syncer

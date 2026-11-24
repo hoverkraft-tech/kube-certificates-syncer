@@ -16,6 +16,7 @@ The example Secrets contain synthetic data, not usable certificates. Replace the
 with your own certificates when deploying. The container runs as UID/GID 10001;
 its certificate volume must be writable by that user. The sample pod sets `fsGroup`
 to grant access to supported Kubernetes volumes and makes the root filesystem read-only.
+Adapt the sample NetworkPolicy to your Kubernetes API and DNS endpoints.
 
 See the [development guide](docs/development/README.md) for local setup and checks.
 
