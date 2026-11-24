@@ -1,3 +1,4 @@
+---
 filter:
   annotations:
     certificate-syncer-enabled: "true"
@@ -5,6 +6,6 @@ filter:
 
 remap:
   - name: tls.crt
-    value: '{{secretName}}.crt'
+    value: "{{secretName}}.crt"
   - name: tls.key
-    value: '{{secretName}}.crt.key'
+    value: "{{secretName}}.crt.key"

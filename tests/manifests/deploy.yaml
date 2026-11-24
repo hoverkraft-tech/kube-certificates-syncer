@@ -1,7 +1,9 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: certs-syncer
+  namespace: certs-syncer
 spec:
   selector:
     matchLabels:
@@ -12,28 +14,45 @@ spec:
         app: certs-syncer
     spec:
       containers:
-      - name: certs-syncer
-        image: docker.io/webofmars/certs-syncer:0.2.1
-        env:
-          - name: NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        volumeMounts:
-        - name: config
-          mountPath: /app/config.yaml
-          subPath: config.yaml
-        - name: certs
-          mountPath: /certs
+        - name: certs-syncer
+          image: docker.io/webofmars/certs-syncer:0.2.1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: certs
+              mountPath: /certs
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
       volumes:
-      - name: config
-        configMap:
-          name: certs-syncer
-      - name: certs
-        persistentVolumeClaim:
-          claimName: certs
+        - name: config
+          configMap:
+            name: certs-syncer
+        - name: certs
+          persistentVolumeClaim:
+            claimName: certs
       serviceAccountName: certs-syncer
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault

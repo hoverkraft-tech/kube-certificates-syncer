@@ -1,0 +1,6 @@
+---
+# Project images are published to Docker Hub and GitHub Container Registry.
+ksv0125:
+  trusted_registries:
+    - docker.io
+    - ghcr.io
