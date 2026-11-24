@@ -150,7 +150,7 @@ def sync_secret(
 
 
 def sync_file(
-    event_type: str, secret_name: str, key: str, value: str, sync_dir: str
+    event_type: str, resource_name: str, key: str, value: str, sync_dir: str
 ) -> None:
     """Apply a single Secret key while keeping decode and filesystem failures local."""
     logger = logging.getLogger(__name__)
@@ -161,11 +161,11 @@ def sync_file(
     if event_type == "DELETED":
         try:
             os.remove(filename)
-            logger.info("deleted secret %s at %s", secret_name, filename)
+            logger.info("deleted secret %s at %s", resource_name, filename)
         except OSError:
             logger.exception(
                 "cannot delete secret %s at %s",
-                secret_name,
+                resource_name,
                 filename,
             )
         return
@@ -175,17 +175,17 @@ def sync_file(
         decoded = b64decode(value, validate=True).decode("utf-8")
         logger.info(
             "secret=%s key=%s written to %s",
-            secret_name,
+            resource_name,
             key,
             filename,
         )
     except (UnicodeDecodeError, Base64Error):
         logger.warning(
             "secret=%s key=%s can't be decoded as base64",
-            secret_name,
+            resource_name,
             key,
         )
-        logger.warning("skipping secret=%s key=%s", secret_name, key)
+        logger.warning("skipping secret=%s key=%s", resource_name, key)
         return
 
     # Write the secret data to a file in the sync directory
@@ -194,12 +194,12 @@ def sync_file(
             output.write(decoded)
         logger.info(
             "secret=%s key=%s written to %s",
-            secret_name,
+            resource_name,
             key,
             filename,
         )
     except OSError:
-        logger.exception("secret=%s key=%s cannot be synced", secret_name, key)
+        logger.exception("secret=%s key=%s cannot be synced", resource_name, key)
 
 
 if __name__ == "__main__":
