@@ -45,19 +45,23 @@ def event_runner(
 
 
 def test_secret_lifecycle(
-    tmp_path: Path, run_events: Callable[[list[dict[str, object]]], None]
+    tmp_path: Path,
+    run_events: Callable[[list[dict[str, object]]], None],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Create, replace and remove only the selected certificate."""
+    """Sync the selected certificate without exposing its contents in logs."""
     certificate = tmp_path / "example.crt"
     unrelated = tmp_path / "unrelated.crt"
     unrelated.write_text("keep", encoding="utf-8")
-    run_events([{"type": "ADDED", "object": secret()}])
-    assert certificate.read_text(encoding="utf-8") == "certificate"
-    run_events([{"type": "MODIFIED", "object": secret("renewed")}])
-    assert certificate.read_text(encoding="utf-8") == "renewed"
+    run_events([{"type": "ADDED", "object": secret("private-certificate-content")}])
+    assert certificate.read_text(encoding="utf-8") == "private-certificate-content"
+    run_events([{"type": "MODIFIED", "object": secret("renewed-private-content")}])
+    assert certificate.read_text(encoding="utf-8") == "renewed-private-content"
     run_events([{"type": "DELETED", "object": secret()}])
     assert not certificate.exists()
     assert unrelated.read_text(encoding="utf-8") == "keep"
+    assert "private-certificate-content" not in caplog.text
+    assert "renewed-private-content" not in caplog.text
 
 
 def test_all_annotations_must_match(
