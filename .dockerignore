@@ -12,3 +12,6 @@ __pycache__
 /junit.xml
 /ruff.sarif
 /dist
+/.devcontainer
+/super-linter-output
+/super-linter.log

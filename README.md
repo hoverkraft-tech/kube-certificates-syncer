@@ -1,13 +1,22 @@
 # kube-certificates-syncer
 
-A kubernetes aware daemon that is listening for events on the secrets in the same namesapce and dump them as files with an optional remapping
+A Kubernetes daemon that watches Secrets in its namespace and writes matching
+certificate data to files, with optional filename remapping.
 
-Mainly used to discover all cert-manager generated secrets and dump them in a `/certs` dir for HAproxy with hot reload
+Use it to copy cert-manager certificates into `/certs` for HAProxy hot reloads.
 
-## usage
+## Usage
 
-- Deploy something similar than in `tests/manifests`
-- Create some secrets
-- Check what is in `/certs`
+- Adapt the [example manifests](tests/manifests) to your namespace, image and storage.
+- Apply the namespace before its namespaced resources.
+- Create Secrets with the annotations configured in `config.yaml`.
+- Read the resulting files from the shared `/certs` volume.
 
-See the [development guide](docs/development.md) for local setup and checks.
+The example Secrets contain synthetic data, not usable certificates. Replace them
+with your own certificates when deploying. The container runs as UID/GID 10001;
+its certificate volume must be writable by that user. The sample pod sets `fsGroup`
+to grant access to supported Kubernetes volumes and makes the root filesystem read-only.
+
+See the [development guide](docs/development/README.md) for local setup and checks.
+
+See [Contributing](CONTRIBUTING.md) to develop or propose changes.

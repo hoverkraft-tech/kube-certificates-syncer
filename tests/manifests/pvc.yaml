@@ -1,7 +1,9 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: certs
+  namespace: certs-syncer
 spec:
   resources:
     requests:

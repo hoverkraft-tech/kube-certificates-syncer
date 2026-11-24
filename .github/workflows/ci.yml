@@ -1,6 +1,11 @@
+---
 name: CI
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 8 * * 1"
+  merge_group:
   pull_request:
   push:
     branches: [main]
@@ -12,15 +17,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  python:
+  lint:
+    name: Repository quality
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@33462c06bcbbd9144d7f661929e61953604b444d # 4.3.2
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      packages: read
+      pull-requests: write
+      security-events: write
+      statuses: write
+    with:
+      comment: false
+      lint-all: true
+      javascript-linter-toolchain: ""
+      python-linter-toolchain: ""
+      linter-env: |
+        IGNORE_GITIGNORED_FILES=true
+        LOG_LEVEL=INFO
+        VALIDATE_BASH=true
+        VALIDATE_BASH_EXEC=true
+        VALIDATE_BIOME_FORMAT=true
+        VALIDATE_BIOME_LINT=true
+        VALIDATE_CHECKOV=true
+        VALIDATE_DOCKERFILE_HADOLINT=true
+        VALIDATE_GITHUB_ACTIONS=true
+        VALIDATE_GITHUB_ACTIONS_ZIZMOR=true
+        VALIDATE_GIT_COMMITLINT=${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+        VALIDATE_MARKDOWN=true
+        VALIDATE_MARKDOWN_PRETTIER=true
+        VALIDATE_NATURAL_LANGUAGE=true
+        VALIDATE_SHELL_SHFMT=true
+        VALIDATE_TRIVY=true
+        VALIDATE_YAML=true
+        VALIDATE_YAML_PRETTIER=true
+
+  test:
+    name: Python Continuous Integration
     # Track main while validating the new shared Python workflow in consumers.
-    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main # ratchet:exclude - track shared language CI during adoption
     permissions:
       contents: read
       id-token: write
 
   container:
-    needs: python
+    needs: [lint, test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,5 +72,24 @@ jobs:
           persist-credentials: false
       - name: Build the locked production environment
         run: docker build --tag kube-certificates-syncer:ci .
-      - name: Check the installed application
-        run: docker run --rm --entrypoint python kube-certificates-syncer:ci -I -c "import kube_certificates_syncer.main"
+      - name: Check the non-root runtime and certificate volume
+        run: |
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges \
+            --tmpfs /certs:uid=10001,gid=10001,mode=0700 \
+            --entrypoint python kube-certificates-syncer:ci -I -c '
+          import os
+          from pathlib import Path
+          import kube_certificates_syncer.main
+          assert os.getuid() == 10001
+          Path("/certs/smoke").write_text("ok")
+          '
+
+  reports:
+    if: ${{ !cancelled() }}
+    needs: [lint, test]
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@33462c06bcbbd9144d7f661929e61953604b444d # 4.3.2
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      job-results: ${{ toJSON(needs) }}

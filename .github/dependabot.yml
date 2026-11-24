@@ -1,14 +1,63 @@
+---
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
     schedule:
       interval: weekly
+      day: friday
+      time: "04:00"
+    groups:
+      github-actions-dependencies:
+        patterns: ["*"]
   - package-ecosystem: uv
     directory: /
+    commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
     schedule:
       interval: weekly
+      day: friday
+      time: "04:10"
+    groups:
+      uv-dependencies:
+        patterns: ["*"]
   - package-ecosystem: docker
-    directory: /
+    directories: ["/", "/.github/linters"]
+    commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
     schedule:
       interval: weekly
+      day: friday
+      time: "04:20"
+    groups:
+      docker-dependencies:
+        patterns: ["*"]
+  - package-ecosystem: devcontainers
+    directory: /
+    commit-message:
+      prefix: build
+      include: scope
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    schedule:
+      interval: weekly
+      day: friday
+      time: "04:30"
+    groups:
+      devcontainers-dependencies:
+        patterns: ["*"]
