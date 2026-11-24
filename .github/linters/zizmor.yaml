@@ -1,6 +1,0 @@
----
-rules:
-  unpinned-uses:
-    config:
-      policies:
-        hoverkraft-tech/ci-github-python/*: ref-pin

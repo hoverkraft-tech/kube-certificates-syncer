@@ -1,11 +1,5 @@
 ---
 misconfigurations:
-  - id: DS-0026
-    paths:
-      - Dockerfile
-    statement:
-      This Kubernetes watch worker has no health endpoint; Kubernetes restarts
-      it when its main process exits.
   - id: KSV-0113
     paths:
       - tests/manifests/role.yaml

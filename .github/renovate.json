@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["custom.regex", "pyenv"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "build",
+  "minimumReleaseAge": "7 days",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.devcontainer/devcontainer\\.json$/"],
+      "matchStrings": [
+        "\"ghcr.io/devcontainers-extra/features/uv:1\":\\s*\\{\\s*\"version\":\\s*\"(?<currentValue>[0-9.]+)\""
+      ],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "astral-sh/uv"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Makefile$/"],
+      "matchStrings": ["pip-audit==(?<currentValue>[0-9.]+)"],
+      "datasourceTemplate": "pypi",
+      "depNameTemplate": "pip-audit"
+    }
+  ]
+}

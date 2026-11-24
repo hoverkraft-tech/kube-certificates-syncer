@@ -1,0 +1,31 @@
+---
+name: Main - Continuous Integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 8 * * 1"
+  push:
+    branches: [main]
+
+# jscpd:ignore-start
+# GitHub requires permissions and the shared-workflow call in each event entrypoint.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: $/.github/workflows/__shared-ci.yml
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
+      issues: write
+      packages: read
+      pull-requests: write
+      security-events: write
+      statuses: write
+# jscpd:ignore-end
