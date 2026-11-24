@@ -57,8 +57,11 @@ Review the lockfile and run `make ci` when updating dependencies or features.
 ## Application checks
 
 Tests use synthetic Kubernetes events and temporary directories, without a cluster.
-Docker installs production dependencies from the same uv lockfile as CI. CI builds
-that image and checks the installed application imports; it does not publish it.
+Docker installs production dependencies from the same uv lockfile as CI.
+The container job uses `ci-github-container/actions/docker/setup` to manage Docker,
+Buildx and registry authentication. Docker's build action loads the image locally
+for the non-root import and certificate-volume write checks. Image publication is
+disabled, and the job needs only read access to repository contents and packages.
 
 Run the application against your configured cluster with:
 
