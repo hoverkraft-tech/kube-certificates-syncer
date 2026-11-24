@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    # Track main while validating the new shared Python workflow in consumers.
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main
+    permissions:
+      contents: read
+      id-token: write
+
+  container:
+    needs: python
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the locked production environment
+        run: docker build --tag kube-certificates-syncer:ci .
+      - name: Check the installed application
+        run: docker run --rm --entrypoint python kube-certificates-syncer:ci -I -c "import kube_certificates_syncer.main"

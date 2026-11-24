@@ -9,3 +9,5 @@ Mainly used to discover all cert-manager generated secrets and dump them in a `/
 - Deploy something similar than in `tests/manifests`
 - Create some secrets
 - Check what is in `/certs`
+
+See the [development guide](docs/development.md) for local setup and checks.
