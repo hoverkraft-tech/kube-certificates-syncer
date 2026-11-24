@@ -30,6 +30,8 @@ jobs:
       statuses: write
     with:
       comment: false
+      # Keep the repository-managed CodeQL default setup for Python.
+      codeql-languages: ""
       lint-all: true
       javascript-linter-toolchain: ""
       python-linter-toolchain: ""

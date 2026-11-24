@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: certs-syncer
+  namespace: certs-syncer
+spec:
+  podSelector:
+    matchLabels:
+      app: certs-syncer
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  # Adapt these ports to your cluster's API endpoint and DNS service.
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 6443
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

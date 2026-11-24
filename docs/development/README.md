@@ -71,3 +71,8 @@ That access is essential to the syncer and is the only RBAC scanner exception.
 The sample deployment drops capabilities, uses a read-only root filesystem, sets
 resource budgets and grants volume access through `fsGroup: 10001`. Its service
 account token is required to watch the Kubernetes API.
+
+The existing GitHub CodeQL default setup continues to scan Python. The shared
+linter disables its additional CodeQL job because GitHub rejects advanced-setup
+results while default setup is enabled. Actionlint, Zizmor and Checkov still check
+workflow correctness and security.

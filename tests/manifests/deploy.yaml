@@ -4,6 +4,16 @@ kind: Deployment
 metadata:
   name: certs-syncer
   namespace: certs-syncer
+  annotations:
+    checkov.io/skip1:
+      CKV_K8S_8=The watch worker has no health endpoint. Kubernetes
+      restarts its main process on exit.
+    checkov.io/skip2:
+      CKV_K8S_9=This background worker is not a Service backend and
+      has no readiness endpoint.
+    checkov.io/skip3:
+      CKV_K8S_38=The worker requires its service account token to
+      watch the Kubernetes API.
 spec:
   selector:
     matchLabels:
@@ -15,7 +25,7 @@ spec:
     spec:
       containers:
         - name: certs-syncer
-          image: docker.io/webofmars/certs-syncer:0.2.1
+          image: docker.io/webofmars/certs-syncer:0.2.1@sha256:fa7516831c21e34194f52b82ea9c46f22d512bab99fb81a3f1717fbd0abbe3c9
           env:
             - name: NAMESPACE
               valueFrom:
@@ -41,6 +51,7 @@ spec:
             capabilities:
               drop:
                 - ALL
+          imagePullPolicy: Always
       volumes:
         - name: config
           configMap:
