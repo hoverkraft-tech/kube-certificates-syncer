@@ -1,20 +1,10 @@
 ---
-name: CI
+name: Internal - Shared continuous integration
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "25 8 * * 1"
-  merge_group:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_call:
 
 permissions: {}
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   lint:
@@ -33,32 +23,17 @@ jobs:
       # Keep the repository-managed CodeQL default setup for Python.
       codeql-languages: ""
       lint-all: true
-      javascript-linter-toolchain: ""
-      python-linter-toolchain: ""
+      python-linter-toolchain: black
       linter-env: |
         IGNORE_GITIGNORED_FILES=true
         LOG_LEVEL=INFO
-        VALIDATE_BASH=true
-        VALIDATE_BASH_EXEC=true
-        VALIDATE_BIOME_FORMAT=true
-        VALIDATE_BIOME_LINT=true
-        VALIDATE_CHECKOV=true
-        VALIDATE_DOCKERFILE_HADOLINT=true
-        VALIDATE_GITHUB_ACTIONS=true
-        VALIDATE_GITHUB_ACTIONS_ZIZMOR=true
-        VALIDATE_GIT_COMMITLINT=${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
-        VALIDATE_MARKDOWN=true
-        VALIDATE_MARKDOWN_PRETTIER=true
-        VALIDATE_NATURAL_LANGUAGE=true
-        VALIDATE_SHELL_SHFMT=true
-        VALIDATE_TRIVY=true
-        VALIDATE_YAML=true
-        VALIDATE_YAML_PRETTIER=true
+        PYTHON_BLACK_CONFIG_FILE=../../pyproject.toml
+        PYTHON_ISORT_CONFIG_FILE=../../pyproject.toml
 
   test:
     name: Python Continuous Integration
     # Track main while validating the new shared Python workflow in consumers.
-    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main # ratchet:exclude - track shared language CI during adoption
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main # ratchet:exclude # zizmor: ignore[unpinned-uses]
     permissions:
       contents: read
       id-token: write

@@ -1,3 +1,5 @@
+"""Exercise Secret synchronization without contacting a Kubernetes cluster."""
+
 from base64 import b64encode
 from collections.abc import Callable
 from pathlib import Path
@@ -10,6 +12,7 @@ from kube_certificates_syncer import main
 
 
 def secret(value: str = "certificate") -> V1Secret:
+    """Build a synthetic certificate Secret matching both filters."""
     return V1Secret(
         metadata=V1ObjectMeta(
             name="example",
@@ -19,10 +22,11 @@ def secret(value: str = "certificate") -> V1Secret:
     )
 
 
-@pytest.fixture
-def run_events(
+@pytest.fixture(name="run_events")
+def event_runner(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> Callable[[list[dict[str, object]]], None]:
+    """Run supplied events with isolated configuration and certificate storage."""
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("SYNCDIR", str(tmp_path))
     monkeypatch.setenv("NAMESPACE", "test")
@@ -43,6 +47,7 @@ def run_events(
 def test_secret_lifecycle(
     tmp_path: Path, run_events: Callable[[list[dict[str, object]]], None]
 ) -> None:
+    """Create, replace and remove only the selected certificate."""
     certificate = tmp_path / "example.crt"
     unrelated = tmp_path / "unrelated.crt"
     unrelated.write_text("keep", encoding="utf-8")
@@ -58,6 +63,7 @@ def test_secret_lifecycle(
 def test_all_annotations_must_match(
     tmp_path: Path, run_events: Callable[[list[dict[str, object]]], None]
 ) -> None:
+    """Require every configured annotation to match."""
     filtered = secret()
     assert filtered.metadata is not None
     filtered.metadata.annotations = {"enabled": "true", "dry-run": "true"}
@@ -70,6 +76,7 @@ def test_write_error_does_not_stop_later_events(
     run_events: Callable[[list[dict[str, object]]], None],
     caplog: pytest.LogCaptureFixture,
 ) -> None:
+    """Continue processing subsequent Secrets after a filesystem failure."""
     (tmp_path / "example.crt").mkdir()
     later = secret("next certificate")
     assert later.metadata is not None
@@ -90,6 +97,7 @@ def test_invalid_certificate_keeps_existing_file(
     tmp_path: Path,
     run_events: Callable[[list[dict[str, object]]], None],
 ) -> None:
+    """Keep an existing certificate when its replacement cannot be decoded."""
     certificate = tmp_path / "example.crt"
     certificate.write_text("previous certificate", encoding="utf-8")
     invalid = secret()

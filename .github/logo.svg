@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="265" height="265" viewBox="0 0 70.115 70.115" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">Kube Certificates Syncer</title>
+  <!-- Standalone extraction from social-preview.svg; keep the badge paths synchronized. -->
+  <!-- jscpd:ignore-start -->
+  <g style="clip-rule:evenodd;fill-rule:evenodd;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision" transform="translate(.332 -.144)scale(.26458)">
+    <rect width="241.368" height="247.861" x="6.339" y="8.104" ry="17.481" style="fill:#1998ff;fill-opacity:1;stroke-width:10.5638;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;paint-order:markers fill stroke" />
+    <rect width="241.38" height="41.469" x="6.364" y="214.779" ry="17.481" style="clip-rule:evenodd;fill:#506690;fill-opacity:1;fill-rule:evenodd;stroke-width:10.5641;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;paint-order:markers fill stroke;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision" />
+    <path d="m247.672 230.819-.048-15.321c-.022-6.983-27.353-18.917-43.361-17.924-6.68.415-14.539.363-49.531 14.17-28.355 11.186-34.962-30.266-70.016-7.922-20.263 12.916-65.029 11.749-46.402-11.919 3.864-4.91-31.952 6.602-31.988 27.107l-.023 12.599" style="fill:#506690;fill-opacity:1;stroke-width:10.5638;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;paint-order:markers fill stroke;image-rendering:auto" />
+    <g fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M96 129V58a6 6 0 0 1 6-6h34l22 22v55a6 6 0 0 1-6 6h-50a6 6 0 0 1-6-6Z M136 52v22h22 M111 106l10 10 22-24" />
+      <path d="M83 74a51 51 0 0 0-7 62m-15-6 15 6 5-15 M171 76a51 51 0 0 1 7 62m15-6-15 6-5-15" />
+    </g>
+  </g>
+  <!-- jscpd:ignore-end -->
+</svg>

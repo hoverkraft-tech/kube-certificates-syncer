@@ -38,3 +38,12 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["kube_certificates_syncer"]
 branch = true
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests", "typings"]
+known_first_party = ["kube_certificates_syncer"]
+known_third_party = ["kubernetes"]

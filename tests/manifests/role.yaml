@@ -4,6 +4,9 @@ kind: Role
 metadata:
   name: certs-syncer
   namespace: certs-syncer
+# Reading namespace Secrets is the syncer purpose; only list/watch are granted.
+# Trivy KSV-0113 cannot be ignored inline in raw Kubernetes YAML. The sole
+# rule-and-file exception lives in .github/linters/trivy-exceptions.yaml.
 rules:
   - verbs:
       - list
