@@ -9,7 +9,7 @@ permissions: {}
 jobs:
   lint:
     name: Repository quality
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@33462c06bcbbd9144d7f661929e61953604b444d # 4.3.2
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
     permissions:
       actions: read
       contents: read
@@ -32,8 +32,7 @@ jobs:
 
   test:
     name: Python Continuous Integration
-    # Track main while validating the new shared Python workflow in consumers.
-    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@main # ratchet:exclude # zizmor: ignore[unpinned-uses]
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@9fe07ffb0ede25d9311ca9e3d8c82d1ce38e7d75 # 0.0.1
     permissions:
       contents: read
       id-token: write
@@ -77,7 +76,7 @@ jobs:
   reports:
     if: ${{ !cancelled() }}
     needs: [lint, test]
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@33462c06bcbbd9144d7f661929e61953604b444d # 4.3.2
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
     permissions:
       contents: read
       pull-requests: write

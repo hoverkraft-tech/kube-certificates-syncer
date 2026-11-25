@@ -40,10 +40,8 @@ Shared CI reports consolidate native reports after the producer jobs finish; pro
 failures continue to block validation. The semantic PR workflow and repository linter
 share [.commitlintrc.json](../../.commitlintrc.json).
 
-The `ci-github-python` references intentionally use `main` during adoption.
-Those references carry temporary inline pinning exceptions; other external actions
-use reviewed SHAs with version comments. Replace those temporary branch references with reviewed
-release pins after adoption.
+External actions and reusable workflows use reviewed release SHAs with matching
+version comments. Dependabot maintains these references.
 
 Dependabot groups weekly updates for actions, language dependencies, Docker images
 and devcontainer features, with a seven-day cooldown and Conventional Commit titles.
