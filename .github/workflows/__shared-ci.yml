@@ -49,7 +49,7 @@ jobs:
           persist-credentials: false
       - name: Setup Docker tooling
         id: docker
-        uses: hoverkraft-tech/ci-github-container/actions/docker/setup@b055d6ce0f3a5e223615ad494d88d92e17af11e5 # 4.2.0
+        uses: hoverkraft-tech/ci-github-container/actions/docker/setup@a5dc1ea7c1f4c2dffc3267c5be7304d01284f2ec # 4.2.1
         with:
           oci-registry-username: ${{ github.actor }}
           oci-registry-password: ${{ github.token }}
