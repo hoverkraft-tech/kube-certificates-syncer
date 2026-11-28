@@ -27,5 +27,6 @@ jobs:
       packages: read
       pull-requests: write
       security-events: write
+      code-quality: write
       statuses: write
 # jscpd:ignore-end

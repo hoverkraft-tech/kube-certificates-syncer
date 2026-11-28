@@ -36,8 +36,15 @@ remain enabled.
 
 Pull requests, merge queues and main-branch pushes run the shared language checks
 and repository linter. A weekly run detects newly disclosed dependency vulnerabilities.
-Shared CI reports consolidate native reports after the producer jobs finish; producer
-failures continue to block validation. The semantic PR workflow and repository linter
+Python 3.12 and 3.15 both retain detailed test results. Lint and coverage run once,
+on Python 3.15. The Python actions validate their native reports before uploading
+them; missing or malformed results fail the producer.
+
+One final reporting job waits for the repository linter, Python checks and container
+smoke test. It publishes annotations for lint and test failures, plus coverage through
+GitHub when Code Quality is enabled or a PR comment otherwise. Its summary includes
+the tested revision, runtime and links to the original jobs. No artifact IDs or
+report inventories need forwarding. Producer failures continue to block validation. The semantic PR workflow and repository linter
 share [.commitlintrc.json](../../.commitlintrc.json).
 
 External actions and reusable workflows use reviewed release SHAs with matching

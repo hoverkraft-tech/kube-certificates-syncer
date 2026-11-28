@@ -9,7 +9,7 @@ permissions: {}
 jobs:
   lint:
     name: Repository quality
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@ea5900049a1704d6d2b479cc6cce37e799f532a3 # PR #683 (unreleased)
     permissions:
       actions: read
       contents: read
@@ -19,7 +19,6 @@ jobs:
       security-events: write
       statuses: write
     with:
-      comment: false
       # Keep the repository-managed CodeQL default setup for Python.
       codeql-languages: ""
       lint-all: true
@@ -32,10 +31,12 @@ jobs:
 
   test:
     name: Python Continuous Integration
-    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@9fe07ffb0ede25d9311ca9e3d8c82d1ce38e7d75 # 0.0.1
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@c257ef9b192b01b7e4eaa84be41ce8a7599bff33 # PR #11 (unreleased)
     permissions:
+      actions: read
       contents: read
-      id-token: write
+    with:
+      python-versions: '["3.12", "3.15"]'
 
   container:
     needs: [lint, test]
@@ -75,10 +76,14 @@ jobs:
 
   reports:
     if: ${{ !cancelled() }}
-    needs: [lint, test]
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
+    needs: [lint, test, container]
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@ea5900049a1704d6d2b479cc6cce37e799f532a3 # PR #683 (unreleased)
     permissions:
+      actions: read
       contents: read
       pull-requests: write
+      code-quality: write
+      id-token: write
+      security-events: write
     with:
       job-results: ${{ toJSON(needs) }}
