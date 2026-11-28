@@ -36,9 +36,11 @@ remain enabled.
 
 Pull requests, merge queues and main-branch pushes run the shared language checks
 and repository linter. A weekly run detects newly disclosed dependency vulnerabilities.
-Python 3.12 and 3.15 both retain detailed test results. Lint and coverage run once,
-on Python 3.15. The Python actions validate their native reports before uploading
-them; missing or malformed results fail the producer.
+Python lint, tests, audit and coverage run once using
+[.python-version](../../.python-version). Keep this pin aligned with the production
+[Dockerfile](../../Dockerfile), which defines the deployed runtime. The Python
+actions validate their native reports before uploading them; missing or malformed
+results fail the producer.
 
 One final reporting job waits for the repository linter, Python checks and container
 smoke test. It publishes annotations for lint and test failures, plus coverage through

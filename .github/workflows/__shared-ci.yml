@@ -31,12 +31,11 @@ jobs:
 
   test:
     name: Python Continuous Integration
+    # Use .python-version, aligned with the production Dockerfile.
     uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@c257ef9b192b01b7e4eaa84be41ce8a7599bff33 # PR #11 (unreleased)
     permissions:
       actions: read
       contents: read
-    with:
-      python-versions: '["3.12", "3.15"]'
 
   container:
     needs: [lint, test]
