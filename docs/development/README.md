@@ -12,15 +12,16 @@ The Python version comes from [.python-version](../../.python-version); uv insta
 
 ## Commands
 
-| Command         | Purpose                                           |
-| --------------- | ------------------------------------------------- |
-| `make setup`    | Install or verify dependencies                    |
-| `make lint`     | Check application code and repository files       |
-| `make lint-fix` | Apply supported formatting fixes                  |
-| `make test`     | Run tests and collect coverage                    |
-| `make audit`    | Check production dependencies for vulnerabilities |
-| `make build`    | Build locally without publishing                  |
-| `make ci`       | Run the complete local validation sequence        |
+| Command           | Purpose                                               |
+| ----------------- | ----------------------------------------------------- |
+| `make setup`      | Install or verify dependencies                        |
+| `make lint`       | Check application code and repository files           |
+| `make lint-fix`   | Apply supported formatting fixes                      |
+| `make test`       | Run tests and collect coverage                        |
+| `make test-image` | Build and test the production image with the CI suite |
+| `make audit`      | Check production dependencies for vulnerabilities     |
+| `make build`      | Build locally without publishing                      |
+| `make ci`         | Run the complete local validation sequence            |
 
 `make lint-repository` uses the same pinned Hoverkraft Super-Linter image and
 tool configuration as CI, without a repository validator allowlist. It checks
@@ -36,8 +37,17 @@ remain enabled.
 
 Pull requests, merge queues and main-branch pushes run the shared language checks
 and repository linter. A weekly run detects newly disclosed dependency vulnerabilities.
-Shared CI reports consolidate native reports after the producer jobs finish; producer
-failures continue to block validation. The semantic PR workflow and repository linter
+Python lint, tests, audit and coverage run once using
+[.python-version](../../.python-version). Keep this pin aligned with the production
+[Dockerfile](../../Dockerfile), which defines the deployed runtime. The Python
+actions validate their native reports before uploading them; missing or malformed
+results fail the producer.
+
+One final reporting job waits for the repository linter, Python checks and container
+smoke test. It publishes annotations for lint and test failures, plus coverage through
+GitHub when Code Quality is enabled or a PR comment otherwise. Its summary includes
+the tested revision, runtime and links to the original jobs. No artifact IDs or
+report inventories need forwarding. Producer failures continue to block validation. The semantic PR workflow and repository linter
 share [.commitlintrc.json](../../.commitlintrc.json).
 
 External actions and reusable workflows use reviewed release SHAs with matching
@@ -58,8 +68,31 @@ Tests use synthetic Kubernetes events and temporary directories, without a clust
 Docker installs production dependencies from the same uv lockfile as CI.
 The container job uses `ci-github-container/actions/docker/setup` to manage Docker,
 Buildx and registry authentication. Docker's build action loads the image locally
-for the non-root import and certificate-volume write checks. Image publication is
-disabled, and the job needs only read access to repository contents and packages.
+and passes its exact image ID to `ci-github-container/actions/docker/test-image`.
+The action detects the [Goss suite](../../tests/container-image/goss.yaml),
+which checks the production user, application import, read-only root filesystem
+and writable certificate volume with dropped capabilities and no new privileges.
+Goss runs directly as the container's command, using the image's application user.
+Its native JUnit results join the consolidated CI report. The action supplies the
+Goss binary; no test tooling is added to the production image.
+Image publication is disabled; the job uses read access to Actions, contents and packages.
+
+Run the same image suite locally with `make test-image`. It builds the production
+image, resolves its immutable local ID and runs the same suite and
+[Docker security options](../../tests/container-image/docker-args) with the same
+Goss version as CI. The Make target extracts the binary from the pinned official
+Goss image and removes its temporary containers and binary after execution.
+This requires Linux, Docker with a local Unix socket and the standard `timeout`
+command; no host Goss or Node.js installation or Kubernetes cluster is needed.
+Execution is limited to five minutes. `make ci` includes this check.
+The native JUnit report is retained, including after assertion failures, at
+`.cache/container-tests/junit.xml`; the local image remains available for inspection.
+Use `make test-image IMAGE=kube-certificates-syncer:custom` to choose its local tag.
+
+These are packaging checks. They do not start the worker, connect to Kubernetes
+or validate its watch loop. A Goss suite that needs a running application can call
+a project-owned script that starts it, waits for readiness, checks its behavior
+and stops it. Keep dependent steps together because Goss checks can run concurrently.
 
 Run the application against your configured cluster with:
 

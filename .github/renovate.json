@@ -21,6 +21,15 @@
       "matchStrings": ["pip-audit==(?<currentValue>[0-9.]+)"],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "pip-audit"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^Makefile$/"],
+      "matchStrings": [
+        "GOSS_IMAGE := (?<depName>[^\\s:]+):(?<currentValue>[^\\s@]+)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
   ]
 }

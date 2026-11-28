@@ -9,7 +9,7 @@ permissions: {}
 jobs:
   lint:
     name: Repository quality
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@ea5900049a1704d6d2b479cc6cce37e799f532a3 # PR #683 (unreleased)
     permissions:
       actions: read
       contents: read
@@ -19,7 +19,6 @@ jobs:
       security-events: write
       statuses: write
     with:
-      comment: false
       # Keep the repository-managed CodeQL default setup for Python.
       codeql-languages: ""
       lint-all: true
@@ -32,15 +31,17 @@ jobs:
 
   test:
     name: Python Continuous Integration
-    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@9fe07ffb0ede25d9311ca9e3d8c82d1ce38e7d75 # 0.0.1
+    # Use .python-version, aligned with the production Dockerfile.
+    uses: hoverkraft-tech/ci-github-python/.github/workflows/continuous-integration.yml@c257ef9b192b01b7e4eaa84be41ce8a7599bff33 # PR #11 (unreleased)
     permissions:
+      actions: read
       contents: read
-      id-token: write
 
   container:
     needs: [lint, test]
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       packages: read
     steps:
@@ -54,6 +55,7 @@ jobs:
           oci-registry-username: ${{ github.actor }}
           oci-registry-password: ${{ github.token }}
       - name: Build the locked production environment
+        id: image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           builder: ${{ steps.docker.outputs.buildx-name }}
@@ -61,24 +63,23 @@ jobs:
           load: true
           push: false
           tags: kube-certificates-syncer:ci
-      - name: Check the non-root runtime and certificate volume
-        run: |
-          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges \
-            --tmpfs /certs:uid=10001,gid=10001,mode=0700 \
-            --entrypoint python kube-certificates-syncer:ci -I -c '
-          import os
-          from pathlib import Path
-          import kube_certificates_syncer.main
-          assert os.getuid() == 10001
-          Path("/certs/smoke").write_text("ok")
-          '
+      - name: Test the production image
+        # TODO: pin a release after https://github.com/hoverkraft-tech/ci-github-container/pull/1003.
+        uses: hoverkraft-tech/ci-github-container/actions/docker/test-image@0bf893fcfa8c89025db158e848bd7ffa57ed324c # PR #1003 (unreleased)
+        with:
+          image: ${{ steps.image.outputs.imageid }}
+          working-directory: tests/container-image
 
   reports:
     if: ${{ !cancelled() }}
-    needs: [lint, test]
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@af0bdd6313bd49aaf4a8a7f0de005fb0db856b03 # 4.3.3
+    needs: [lint, test, container]
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/ci-reports.yml@ea5900049a1704d6d2b479cc6cce37e799f532a3 # PR #683 (unreleased)
     permissions:
+      actions: read
       contents: read
       pull-requests: write
+      code-quality: write
+      id-token: write
+      security-events: write
     with:
       job-results: ${{ toJSON(needs) }}

@@ -1,0 +1,21 @@
+---
+command:
+  application-user:
+    exec: python -I -c 'import os; assert (os.getuid(), os.getgid()) == (10001, 10001)'
+    exit-status: 0
+  application-import:
+    exec: python -I -c 'import kube_certificates_syncer.main'
+    exit-status: 0
+  read-only-root:
+    exec: python -I -c 'import os; assert os.statvfs("/").f_flag & os.ST_RDONLY'
+    exit-status: 0
+  writable-certificates:
+    exec: |
+      python -I - <<'PY'
+      from pathlib import Path
+
+      certificate = Path("/certs/smoke")
+      certificate.write_text("ok")
+      assert certificate.read_text() == "ok"
+      PY
+    exit-status: 0
