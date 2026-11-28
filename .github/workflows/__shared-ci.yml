@@ -42,6 +42,7 @@ jobs:
     needs: [lint, test]
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       packages: read
     steps:
@@ -55,6 +56,7 @@ jobs:
           oci-registry-username: ${{ github.actor }}
           oci-registry-password: ${{ github.token }}
       - name: Build the locked production environment
+        id: image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           builder: ${{ steps.docker.outputs.buildx-name }}
@@ -62,17 +64,12 @@ jobs:
           load: true
           push: false
           tags: kube-certificates-syncer:ci
-      - name: Check the non-root runtime and certificate volume
-        run: |
-          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges \
-            --tmpfs /certs:uid=10001,gid=10001,mode=0700 \
-            --entrypoint python kube-certificates-syncer:ci -I -c '
-          import os
-          from pathlib import Path
-          import kube_certificates_syncer.main
-          assert os.getuid() == 10001
-          Path("/certs/smoke").write_text("ok")
-          '
+      - name: Test the production image
+        # TODO: pin a release after https://github.com/hoverkraft-tech/ci-github-container/pull/1003.
+        uses: hoverkraft-tech/ci-github-container/actions/docker/test-image@ed66917d0fccb360494ce3558ecd05cfbaba464f # PR #1003 (unreleased)
+        with:
+          image: ${{ steps.image.outputs.imageid }}
+          working-directory: tests/container-image
 
   reports:
     if: ${{ !cancelled() }}

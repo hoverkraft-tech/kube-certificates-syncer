@@ -65,8 +65,13 @@ Tests use synthetic Kubernetes events and temporary directories, without a clust
 Docker installs production dependencies from the same uv lockfile as CI.
 The container job uses `ci-github-container/actions/docker/setup` to manage Docker,
 Buildx and registry authentication. Docker's build action loads the image locally
-for the non-root import and certificate-volume write checks. Image publication is
-disabled, and the job needs only read access to repository contents and packages.
+and passes its exact image ID to `ci-github-container/actions/docker/test-image`.
+The action detects the [Testcontainers suite](../../tests/container-image/image.test.js),
+which checks the production user, application import, read-only root filesystem
+and writable certificate volume with dropped capabilities and no new privileges.
+Its native JUnit results join the consolidated CI report. The action supplies the
+test runner, so the application does not need Node.js dependencies.
+Image publication is disabled; the job uses read access to Actions, contents and packages.
 
 Run the application against your configured cluster with:
 
