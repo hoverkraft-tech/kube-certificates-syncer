@@ -3,9 +3,8 @@
 
 LINTER_IMAGE := kube-certificates-syncer-linter:local
 IMAGE ?= kube-certificates-syncer:local
-# Match ci-github-container/actions/docker/test-image/tooling.json.
-TESTCONTAINERS_IMAGE := ghcr.io/hoverkraft-tech/docker-base-images/testcontainers-node:1.0.5@sha256:0a8eabad2b41854803acd0608472ef404b94aa8d8ee29e472cf6e86a1ee53248
-RYUK_IMAGE := docker.io/testcontainers/ryuk:0.14.0@sha256:7c1a8a9a47c780ed0f983770a662f80deb115d95cce3e2daa3d12115b8cd28f0
+# Match the Goss version in ci-github-container/actions/docker/test-image/tooling.json.
+GOSS_IMAGE := ghcr.io/goss-org/goss:v0.4.10@sha256:8d3924f722a04a660e9e6c2403be0399d737c0187fc065714d26b992286c3f0a
 
 help: ## Show development commands
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "%-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -32,23 +31,31 @@ build: ## Build the production container without publishing
 test-image: build ## Build and test the production image with the CI suite
 	@set -eu; \
 	image_id=$$(docker image inspect --format '{{.Id}}' "$(IMAGE)"); \
+	platform=$$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$$image_id"); \
 	socket=$$(docker context inspect --format '{{.Endpoints.docker.Host}}'); \
 	if [ -n "$${DOCKER_HOST:-}" ] && [ -z "$${DOCKER_CONTEXT:-}" ]; then socket=$$DOCKER_HOST; fi; \
 	case "$$socket" in unix://*) socket=$${socket#unix://} ;; *) echo 'Image tests require a local Unix Docker socket.' >&2; exit 1 ;; esac; \
 	test -S "$$socket"; \
 	mkdir -p .cache/container-tests; \
-	docker run --rm --init --network host --user 0:0 \
-		--volume "$$socket:/var/run/docker.sock" \
-		--volume "$(CURDIR)/tests/container-image:/workspace/image:ro" \
-		--volume "$(CURDIR)/.cache/container-tests:/reports" \
-		--env DOCKER_HOST=unix:///var/run/docker.sock \
-		--env TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-		--env TESTCONTAINERS_HOST_OVERRIDE=127.0.0.1 \
-		--env TESTED_IMAGE_REF="$$image_id" \
-		--env RYUK_CONTAINER_IMAGE="$(RYUK_IMAGE)" \
-		--env TEST_JUNIT_REPORT_PATH=/reports/junit.xml \
-		--env HOST_UID="$$(id -u)" --env HOST_GID="$$(id -g)" \
-		"$(TESTCONTAINERS_IMAGE)" --test-timeout=300000 /workspace/image/image.test.js
+	rm -f .cache/container-tests/junit.xml; \
+	tools=$$(mktemp -d "$(CURDIR)/.cache/container-tests/tools.XXXXXX"); \
+	tool_container=; test_container=; \
+	trap 'if [ -n "$$test_container" ]; then docker rm --force --volumes "$$test_container" >/dev/null; fi; if [ -n "$$tool_container" ]; then docker rm --force --volumes "$$tool_container" >/dev/null; fi; rm -rf "$$tools"' EXIT; \
+	trap 'exit 130' INT; trap 'exit 143' TERM; \
+	tool_container=$$(docker create --platform "$$platform" "$(GOSS_IMAGE)" /bin/true); \
+	docker cp "$$tool_container:/usr/bin/goss" "$$tools/goss"; \
+	chmod 755 "$$tools/goss"; \
+	set --; \
+	while IFS= read -r option || [ -n "$$option" ]; do \
+		case "$$option" in ''|'#'*) continue ;; esac; \
+		set -- "$$@" "$$option"; \
+	done < tests/container-image/docker-args; \
+	test_container=$$(docker create "$$@" --platform "$$platform" \
+		--volume "$$tools/goss:/goss-bin:ro" \
+		--volume "$(CURDIR)/tests/container-image:/goss:ro" \
+		--entrypoint /goss-bin "$$image_id" -g /goss/goss.yaml validate --format junit); \
+	echo 'Running image checks; JUnit report: .cache/container-tests/junit.xml'; \
+	timeout --kill-after=5s 300s docker start --attach "$$test_container" > .cache/container-tests/junit.xml
 
 lint-fix: ## Apply Python and repository formatting fixes
 	uv run --locked ruff check --fix .

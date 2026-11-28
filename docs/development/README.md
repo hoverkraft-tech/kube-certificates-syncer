@@ -69,25 +69,29 @@ Docker installs production dependencies from the same uv lockfile as CI.
 The container job uses `ci-github-container/actions/docker/setup` to manage Docker,
 Buildx and registry authentication. Docker's build action loads the image locally
 and passes its exact image ID to `ci-github-container/actions/docker/test-image`.
-The action detects the [Testcontainers suite](../../tests/container-image/image.test.js),
+The action detects the [Goss suite](../../tests/container-image/goss.yaml),
 which checks the production user, application import, read-only root filesystem
 and writable certificate volume with dropped capabilities and no new privileges.
+Goss runs directly as the container's command, using the image's application user.
 Its native JUnit results join the consolidated CI report. The action supplies the
-test runner, so the application does not need Node.js dependencies.
+Goss binary; no test tooling is added to the production image.
 Image publication is disabled; the job uses read access to Actions, contents and packages.
 
 Run the same image suite locally with `make test-image`. It builds the production
-image, resolves its immutable local ID and runs the suite with the same pinned
-Testcontainers runner and Ryuk images as the CI action. This requires Linux and
-a local Unix Docker socket; no host Node.js installation or Kubernetes cluster is
-needed. `make ci` includes this check. The native JUnit report is retained at
+image, resolves its immutable local ID and runs the same suite and
+[Docker security options](../../tests/container-image/docker-args) with the same
+Goss version as CI. The Make target extracts the binary from the pinned official
+Goss image and removes its temporary containers and binary after execution.
+This requires Linux, Docker with a local Unix socket and the standard `timeout`
+command; no host Goss or Node.js installation or Kubernetes cluster is needed.
+Execution is limited to five minutes. `make ci` includes this check.
+The native JUnit report is retained, including after assertion failures, at
 `.cache/container-tests/junit.xml`; the local image remains available for inspection.
 Use `make test-image IMAGE=kube-certificates-syncer:custom` to choose its local tag.
 
-The suite overrides the worker's Kubernetes-dependent entrypoint to check its
-packaged runtime. It does not validate cluster connectivity or the watch loop.
-The shared Goss adapter currently starts the image's normal entrypoint and requires
-a running container, so this smoke test uses Testcontainers.
+These are packaging checks. They do not start the worker, connect to Kubernetes
+or validate its watch loop. Running-service tests would instead use the shared
+action's explicit `goss-mode: service`.
 
 Run the application against your configured cluster with:
 
