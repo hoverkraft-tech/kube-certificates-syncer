@@ -12,15 +12,16 @@ The Python version comes from [.python-version](../../.python-version); uv insta
 
 ## Commands
 
-| Command         | Purpose                                           |
-| --------------- | ------------------------------------------------- |
-| `make setup`    | Install or verify dependencies                    |
-| `make lint`     | Check application code and repository files       |
-| `make lint-fix` | Apply supported formatting fixes                  |
-| `make test`     | Run tests and collect coverage                    |
-| `make audit`    | Check production dependencies for vulnerabilities |
-| `make build`    | Build locally without publishing                  |
-| `make ci`       | Run the complete local validation sequence        |
+| Command           | Purpose                                               |
+| ----------------- | ----------------------------------------------------- |
+| `make setup`      | Install or verify dependencies                        |
+| `make lint`       | Check application code and repository files           |
+| `make lint-fix`   | Apply supported formatting fixes                      |
+| `make test`       | Run tests and collect coverage                        |
+| `make test-image` | Build and test the production image with the CI suite |
+| `make audit`      | Check production dependencies for vulnerabilities     |
+| `make build`      | Build locally without publishing                      |
+| `make ci`         | Run the complete local validation sequence            |
 
 `make lint-repository` uses the same pinned Hoverkraft Super-Linter image and
 tool configuration as CI, without a repository validator allowlist. It checks
@@ -74,6 +75,19 @@ and writable certificate volume with dropped capabilities and no new privileges.
 Its native JUnit results join the consolidated CI report. The action supplies the
 test runner, so the application does not need Node.js dependencies.
 Image publication is disabled; the job uses read access to Actions, contents and packages.
+
+Run the same image suite locally with `make test-image`. It builds the production
+image, resolves its immutable local ID and runs the suite with the same pinned
+Testcontainers runner and Ryuk images as the CI action. This requires Linux and
+a local Unix Docker socket; no host Node.js installation or Kubernetes cluster is
+needed. `make ci` includes this check. The native JUnit report is retained at
+`.cache/container-tests/junit.xml`; the local image remains available for inspection.
+Use `make test-image IMAGE=kube-certificates-syncer:custom` to choose its local tag.
+
+The suite overrides the worker's Kubernetes-dependent entrypoint to check its
+packaged runtime. It does not validate cluster connectivity or the watch loop.
+The shared Goss adapter currently starts the image's normal entrypoint and requires
+a running container, so this smoke test uses Testcontainers.
 
 Run the application against your configured cluster with:
 
