@@ -65,7 +65,7 @@ jobs:
           tags: kube-certificates-syncer:ci
       - name: Test the production image
         # TODO: pin a release after https://github.com/hoverkraft-tech/ci-github-container/pull/1003.
-        uses: hoverkraft-tech/ci-github-container/actions/docker/test-image@0682cac7b56973d2396dc26cab870185b76c4854 # PR #1003 (unreleased)
+        uses: hoverkraft-tech/ci-github-container/actions/docker/test-image@0bf893fcfa8c89025db158e848bd7ffa57ed324c # PR #1003 (unreleased)
         with:
           image: ${{ steps.image.outputs.imageid }}
           working-directory: tests/container-image
