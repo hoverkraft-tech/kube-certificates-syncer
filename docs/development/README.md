@@ -90,8 +90,9 @@ The native JUnit report is retained, including after assertion failures, at
 Use `make test-image IMAGE=kube-certificates-syncer:custom` to choose its local tag.
 
 These are packaging checks. They do not start the worker, connect to Kubernetes
-or validate its watch loop. Running-service tests would instead use the shared
-action's explicit `goss-mode: service`.
+or validate its watch loop. A Goss suite that needs a running application can call
+a project-owned script that starts it, waits for readiness, checks its behavior
+and stops it. Keep dependent steps together because Goss checks can run concurrently.
 
 Run the application against your configured cluster with:
 
